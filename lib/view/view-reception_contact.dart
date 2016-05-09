@@ -155,7 +155,7 @@ class ReceptionContact {
           new DivElement()
             ..children = [
               new LabelElement()
-                ..text = 'Tags'
+                ..text = 'Stikord'
                 ..htmlFor = _tagsInput.id,
               _tagsInput
             ],
