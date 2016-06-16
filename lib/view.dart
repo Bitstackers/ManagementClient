@@ -54,6 +54,7 @@ void arrowReplace(TextAreaElement elem) {
  */
 List<String> _valuesFromListTextArea(TextAreaElement ta) =>
     new List<String>.from(ta.value
+        .replaceAll('->', '➔')
         .split('\n')
         .map((String str) => str.trim())
         .where((String str) => str.isNotEmpty));
