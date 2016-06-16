@@ -37,6 +37,18 @@ controller.Popup notify = controller.popup;
 var _jsonpp = new JsonEncoder.withIndent('  ');
 final DateFormat rfc3339 = new DateFormat('yyyy-MM-dd HH:mm');
 
+void arrowReplace(TextAreaElement elem) {
+  final String orgValue = elem.value;
+  final String newValue = elem.value.replaceAll('->', '➔');
+
+  if (orgValue != newValue) {
+    final int cursorIndex = elem.selectionStart;
+    elem.value = newValue;
+    elem.selectionStart = cursorIndex - 1;
+    elem.selectionEnd = cursorIndex - 1;
+  }
+}
+
 /**
  *
  */

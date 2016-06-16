@@ -317,6 +317,12 @@ class ReceptionContact {
       _saveButton.disabled = inputHasErrors;
       _deleteButton.disabled = inputHasErrors || !_saveButton.disabled;
     };
+
+    element.querySelectorAll('textarea').forEach((Element elem) {
+      elem.onInput.listen((_) {
+        arrowReplace(elem);
+      });
+    });
   }
 
   model.Contact get contact => new model.Contact.empty()
