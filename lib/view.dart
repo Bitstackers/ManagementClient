@@ -37,15 +37,16 @@ controller.Popup notify = controller.popup;
 var _jsonpp = new JsonEncoder.withIndent('  ');
 final DateFormat rfc3339 = new DateFormat('yyyy-MM-dd HH:mm');
 
-void arrowReplace(TextAreaElement elem) {
+void specialCharReplace(TextAreaElement elem) {
   final String orgValue = elem.value;
-  final String newValue = elem.value.replaceAll('->', '➔');
+  final String newValue = elem.value.replaceAll('->', '➔').replaceAll('¤', '⚙');
 
   if (orgValue != newValue) {
     final int cursorIndex = elem.selectionStart;
+    final int diffLength = orgValue.length - newValue.length;
     elem.value = newValue;
-    elem.selectionStart = cursorIndex - 1;
-    elem.selectionEnd = cursorIndex - 1;
+    elem.selectionStart = cursorIndex - diffLength;
+    elem.selectionEnd = cursorIndex - diffLength;
   }
 }
 
@@ -55,6 +56,7 @@ void arrowReplace(TextAreaElement elem) {
 List<String> _valuesFromListTextArea(TextAreaElement ta) =>
     new List<String>.from(ta.value
         .replaceAll('->', '➔')
+        .replaceAll('¤', '⚙')
         .split('\n')
         .map((String str) => str.trim())
         .where((String str) => str.isNotEmpty));
