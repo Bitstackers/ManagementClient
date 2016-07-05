@@ -503,7 +503,7 @@ class Reception {
 
     element.querySelectorAll('textarea').forEach((Element elem) {
       elem.onInput.listen((_) {
-        specialCharReplace(elem);
+        util.specialCharReplace(elem);
       });
     });
 
