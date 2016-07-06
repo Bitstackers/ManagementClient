@@ -72,7 +72,7 @@ class Phonenumbers {
       _validationError = false;
       _phonenumberInput.classes.toggle('error', false);
       try {
-        final dlist = phoneNumbers;
+        phoneNumbers;
 
         ///TODO: Validate endpoints
       } on FormatException {

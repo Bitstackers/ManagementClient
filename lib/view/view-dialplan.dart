@@ -45,7 +45,6 @@ class Dialplan {
   }
 
   void _checkInput() {
-    model.ReceptionDialplan rdp;
     Map json;
     _inputErrorList.children.clear();
     _dialplanInput.classes.toggle('error', false);
@@ -53,7 +52,7 @@ class Dialplan {
       json = JSON.decode(_dialplanInput.value);
 
       try {
-        rdp = model.ReceptionDialplan.decode(json);
+        model.ReceptionDialplan.decode(json);
       } on FormatException {
         _inputErrorList.children
             .add(new LIElement()..text = 'Kaldplan-parser fejl.');

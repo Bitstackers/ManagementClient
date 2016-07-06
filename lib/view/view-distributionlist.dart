@@ -85,7 +85,7 @@ class DistributionList {
       _validationError = false;
       _dlistInput.classes.toggle('error', false);
       try {
-        final dlist = distributionList;
+        distributionList;
 
         ///TODO: Validate endpoints
       } on FormatException {

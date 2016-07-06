@@ -56,7 +56,6 @@ class Messages {
   }
 
   TableRowElement _entryToRow(model.Message msg) {
-    final changeCell = new TableCellElement();
     final ButtonElement deleteButton = new ButtonElement()
       ..text = 'Slet'
       ..classes.add('delete');

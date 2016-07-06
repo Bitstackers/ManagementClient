@@ -44,7 +44,6 @@ class IvrMenu {
   }
 
   void _checkInput() {
-    model.IvrMenu menu;
     Map json;
     _inputErrorList.children.clear();
     _menuInput.classes.toggle('error', false);

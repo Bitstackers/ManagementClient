@@ -13,10 +13,9 @@ class ReceptionView {
   static const String viewName = 'reception';
 
   final controller.Contact _contactController;
-  final controller.Organization _organizationController;
   final controller.Reception _receptionController;
-  final controller.Dialplan _dpController;
-  final controller.Calendar _calendarController;
+
+  final view.Reception _receptionView;
 
   final DivElement element = new DivElement()
     ..id = 'reception-page'
@@ -37,8 +36,6 @@ class ReceptionView {
     ..id = 'reception-contact-list'
     ..classes.add('zebra-odd');
 
-  view.Reception _receptionView;
-
   List<ORModel.Reception> receptions = new List<ORModel.Reception>();
 
   /**
@@ -46,13 +43,8 @@ class ReceptionView {
    */
   ReceptionView(
       controller.Contact this._contactController,
-      controller.Organization this._organizationController,
       controller.Reception this._receptionController,
-      controller.Dialplan this._dpController,
-      controller.Calendar this._calendarController) {
-    _receptionView = new view.Reception(_receptionController,
-        _organizationController, _dpController, _calendarController);
-
+      view.Reception this._receptionView) {
     element.children = [
       new DivElement()
         ..id = 'reception-listing'

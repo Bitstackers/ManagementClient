@@ -93,7 +93,7 @@ class Endpoints {
       _validationError = false;
       _endpointsInput.classes.toggle('error', false);
       try {
-        final eps = endpoints;
+        endpoints;
 
         ///TODO: Validate endpoints
 

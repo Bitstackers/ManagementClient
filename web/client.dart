@@ -1,23 +1,23 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'views/contact-view.dart' as conView;
-
-import 'package:management_tool/page/page-dialplan.dart' as page;
+import 'package:logging/logging.dart';
+import 'package:management_tool/configuration.dart';
+import 'package:management_tool/controller.dart' as controller;
 import 'package:management_tool/page/page-cdr.dart' as page;
+import 'package:management_tool/page/page-dialplan.dart' as page;
 import 'package:management_tool/page/page-ivr.dart' as page;
 import 'package:management_tool/page/page-message.dart' as page;
 import 'package:management_tool/page/page-organization.dart' as page;
 import 'package:management_tool/page/page-reception.dart' as page;
 import 'package:management_tool/page/page-user.dart' as page;
-import 'menu.dart';
-import 'package:management_tool/controller.dart' as controller;
-import 'lib/auth.dart';
-import 'package:management_tool/configuration.dart';
-import 'package:logging/logging.dart';
-
-import 'package:openreception_framework/service.dart' as service;
+import 'package:management_tool/view.dart' as view;
 import 'package:openreception_framework/service-html.dart' as transport;
+import 'package:openreception_framework/service.dart' as service;
+
+import 'lib/auth.dart';
+import 'menu.dart';
+import 'views/contact-view.dart' as conView;
 
 controller.Popup notify = controller.popup;
 
@@ -93,12 +93,11 @@ Future main() async {
 
     querySelector("#organization-page").replaceWith(orgPage.element);
 
+    view.Reception receptionView = new view.Reception(receptionController,
+        organizationController, dialplanController, calendarController);
+
     querySelector("#reception-page").replaceWith(new page.ReceptionView(
-            contactController,
-            organizationController,
-            receptionController,
-            dialplanController,
-            calendarController)
+            contactController, receptionController, receptionView)
         .element);
 
     new conView.ContactView(
@@ -108,7 +107,8 @@ Future main() async {
         receptionController,
         calendarController,
         dlistController,
-        epController);
+        epController,
+        receptionView);
 
     final messagePage = new page.Message(contactController, messageController,
         receptionController, userController);

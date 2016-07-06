@@ -24,6 +24,8 @@ class ContactView {
   final Logger _log = new Logger('$_libraryName.Contact');
   DivElement element;
 
+  final view.Reception _receptionView;
+
   final controller.Contact _contactController;
   final controller.Calendar _calendarController;
   final controller.Organization _organizationController;
@@ -103,7 +105,8 @@ class ContactView {
       this._receptionController,
       this._calendarController,
       this._dlistController,
-      this._endpointController) {
+      this._endpointController,
+      this._receptionView) {
     _baseInfoContainer.children = [
       _deleteButton,
       _saveButton,
@@ -403,11 +406,7 @@ class ContactView {
       }
     });
 
-    bus.on(ReceptionAddedEvent).listen((_) {
-      _fillSearchComponent();
-    });
-
-    bus.on(ReceptionRemovedEvent).listen((_) {
+    _receptionView.changes.listen((view.ReceptionChange rc) {
       _fillSearchComponent();
     });
 
@@ -566,31 +565,6 @@ class ContactView {
       List list = receptions.toList()..sort(compareTo);
 
       _search.updateSourceList(list);
-    });
-  }
-
-  Future _receptionContactUpdate(model.Contact ca) {
-    return _contactController.updateInReception(ca).then((_) {
-      notify.success('Oplysningerne blev gemt', '');
-    }).catchError((error, stack) {
-      notify.error('Ændringerne blev ikke gemt', 'Fejl: $error');
-      _log.severe('Tried to update a Reception Contact, '
-          'but failed with "${error}", ${stack}');
-    });
-  }
-
-  Future _receptionContactCreate(model.Contact contact) {
-    return _contactController
-        .addToReception(contact, contact.receptionID)
-        .then((_) {
-      notify.success('Tilføjet til reception',
-          '${contact.fullName} til (rid: ${contact.receptionID})');
-      bus.fire(new ReceptionContactAddedEvent(contact.receptionID, contact.ID));
-    }).catchError((error, stack) {
-      notify.error(
-          'Kunne ikke tilføje kontakt til reception', 'Fejl: ${error}');
-      _log.severe(
-          'Tried to update a Reception Contact, but failed with "$error" ${stack}');
     });
   }
 
