@@ -112,8 +112,7 @@ class Organization {
    *
    */
   void _observers() {
-    Iterable<InputElement> inputs =
-        element.querySelectorAll('input') as Iterable<InputElement>;
+    Iterable<InputElement> inputs = element.querySelectorAll('input');
 
     inputs.forEach((InputElement ine) {
       ine.onInput.listen((_) {
@@ -125,20 +124,21 @@ class Organization {
     _deleteButton.onClick.listen((_) async {
       if (_deleteButton.text.toLowerCase() == 'slet') {
         _deleteButton.text = 'Bekræft sletning af oid: ${organization.id}?';
-        return;
+      } else {
+        try {
+          await _orgController.remove(organization.id);
+          _changeBus.fire(new OrganizationChange.delete(organization));
+          element.hidden = true;
+          notify.success('Organisationen blev slettet', organization.fullName);
+        } catch (error) {
+          notify.error(
+              'Der skete en fejl, så organisationen blev ikke slettet.',
+              'Fejl: $error');
+          _log.severe('Tried to remove an organization, but got: $error');
+          element.hidden = false;
+        }
+        _deleteButton.text = 'Slet';
       }
-      try {
-        await _orgController.remove(organization.id);
-        _changeBus.fire(new OrganizationChange.delete(organization));
-        element.hidden = true;
-        notify.success('Organisationen blev slettet', organization.fullName);
-      } catch (error) {
-        notify.error('Der skete en fejl, så organisationen blev ikke slettet.',
-            'Fejl: $error');
-        _log.severe('Tried to remove an organization, but got: $error');
-        element.hidden = false;
-      }
-      _deleteButton.text = 'Slet';
     });
 
     _saveButton.onClick.listen((_) async {

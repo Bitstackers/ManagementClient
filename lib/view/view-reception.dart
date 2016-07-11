@@ -220,7 +220,7 @@ class Reception {
       int compareTo(model.Organization org1, model.Organization org2) =>
           org1.fullName.compareTo(org2.fullName);
 
-      List list = orgs.toList()..sort(compareTo);
+      List<model.Organization> list = orgs.toList()..sort(compareTo);
       _search.updateSourceList(list);
 
       _search.selectElement(null, (model.Organization listItem, _) {
@@ -510,25 +510,24 @@ class Reception {
     _deleteButton.onClick.listen((_) async {
       if (_deleteButton.text.toLowerCase() == 'slet') {
         _deleteButton.text = 'Bekræft sletning af rid:${reception.ID}?';
-        return;
-      }
+      } else {
+        try {
+          await _recController.remove(reception.ID);
+          _changeBus.fire(new ReceptionChange.delete(reception));
+          element.hidden = true;
+          notify.success('Receptionen blev slettet', reception.name);
+        } catch (error) {
+          notify.error('Kunne ikke slette reception', reception.name);
+          _log.severe('Tried to remove a reception, but got: $error');
+          element.hidden = false;
+        }
 
-      try {
-        await _recController.remove(reception.ID);
-        _changeBus.fire(new ReceptionChange.delete(reception));
-        element.hidden = true;
-        notify.success('Receptionen blev slettet', reception.name);
-      } catch (error) {
-        notify.error('Kunne ikke slette reception', reception.name);
-        _log.severe('Tried to remove a reception, but got: $error');
-        element.hidden = false;
+        _phoneNumberView.onChange = () {
+          _saveButton.disabled = inputHasErrors;
+          _deleteButton.disabled = inputHasErrors || !_saveButton.disabled;
+          _deployDialplanButton.disabled = _deleteButton.disabled;
+        };
       }
-
-      _phoneNumberView.onChange = () {
-        _saveButton.disabled = inputHasErrors;
-        _deleteButton.disabled = inputHasErrors || !_saveButton.disabled;
-        _deployDialplanButton.disabled = _deleteButton.disabled;
-      };
     });
 
     _saveButton.onClick.listen((_) async {

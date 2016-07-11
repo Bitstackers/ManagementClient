@@ -130,7 +130,7 @@ class UserPage {
    *
    */
   void highlightUserInList(int id) {
-    _userList.children.forEach((LIElement li) =>
+    _userList.children.forEach((Element li) =>
         li.classes.toggle('highlightListItem', li.dataset['userid'] == '$id'));
   }
 

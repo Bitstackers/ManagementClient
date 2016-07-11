@@ -176,7 +176,7 @@ class Dialplan {
    *
    */
   void _highlightDialplanInList(String exten) {
-    _userList.children.forEach((LIElement li) => li.classes
+    _userList.children.forEach((Element li) => li.classes
         .toggle('highlightListItem', li.dataset['extension'] == '$exten'));
   }
 

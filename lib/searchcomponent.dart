@@ -207,7 +207,7 @@ class SearchComponent<T> {
     }
   }
 
-  void _nextElement(KeyboardEvent e) {
+  void _nextElement(Event e) {
     e.preventDefault();
     if (!_withDropDown) {
       showDropDown();
@@ -243,7 +243,7 @@ class SearchComponent<T> {
     }
   }
 
-  void _previousElement(KeyboardEvent e) {
+  void _previousElement(Event e) {
     e.preventDefault();
     if (!_withDropDown) {
       showDropDown();

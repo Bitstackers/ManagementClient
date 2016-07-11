@@ -160,7 +160,7 @@ class OrganizationView {
       int compareTo(ORModel.Organization org1, ORModel.Organization org2) =>
           org1.fullName.compareTo(org2.fullName);
 
-      List list = organizations.toList()..sort(compareTo);
+      List<ORModel.Organization> list = organizations.toList()..sort(compareTo);
       this._organizations = list;
       _renderOrganizationList(list);
     }).catchError((error) {
@@ -186,7 +186,7 @@ class OrganizationView {
   }
 
   void _highlightOrganizationInList(int id) {
-    _orgUList.children.forEach((LIElement li) => li.classes
+    _orgUList.children.forEach((Element li) => li.classes
         .toggle('highlightListItem', li.dataset['organizationid'] == '$id'));
   }
 
@@ -212,7 +212,7 @@ class OrganizationView {
     _organizationController
         .receptions(organizationId)
         .then((Iterable<int> receptionIDs) {
-      List list = [];
+      List<ORModel.Reception> list = [];
       Future
           .forEach(receptionIDs,
               (int id) => _receptionController.get(id).then(list.add))

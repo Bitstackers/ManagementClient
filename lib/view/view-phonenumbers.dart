@@ -109,8 +109,9 @@ class Phonenumbers {
   }
 
   Iterable<model.PhoneNumber> get phoneNumbers => JSON
-      .decode(_phonenumberInput.value)
-      .map((m) => new model.PhoneNumber.fromMap(m));
+          .decode(_phonenumberInput.value)
+          .map((m) => new model.PhoneNumber.fromMap(m))
+      as Iterable<model.PhoneNumber>;
 
   void _resizeInput() {
     while (_phonenumberInput.client.height < _phonenumberInput.scrollHeight) {

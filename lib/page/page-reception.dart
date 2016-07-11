@@ -133,7 +133,7 @@ class ReceptionView {
       int compareTo(ORModel.Reception r1, ORModel.Reception r2) =>
           r1.fullName.compareTo(r2.fullName);
 
-      List list = receptions.toList()..sort(compareTo);
+      List<ORModel.Reception> list = receptions.toList()..sort(compareTo);
       this.receptions = list;
       _performSearch();
     });
@@ -150,7 +150,7 @@ class ReceptionView {
   }
 
   void _highlightContactInList(int id) {
-    _uiReceptionList.children.forEach((LIElement li) => li.classes
+    _uiReceptionList.children.forEach((Element li) => li.classes
         .toggle('highlightListItem', li.dataset['receptionid'] == '$id'));
   }
 

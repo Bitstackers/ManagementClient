@@ -125,8 +125,7 @@ class User {
    *
    */
   void _observers() {
-    Iterable<InputElement> inputs =
-        element.querySelectorAll('input') as Iterable<InputElement>;
+    Iterable<InputElement> inputs = element.querySelectorAll('input');
 
     _groupsView.onChange = () {
       _saveButton.disabled = false;

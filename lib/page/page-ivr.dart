@@ -81,7 +81,7 @@ class Ivr {
     _ivrView.onDelete = ((_) async {
       await _refreshList();
       _userList.children.forEach(
-          (LIElement li) => li.classes.toggle('highlightListItem', false));
+          (Element li) => li.classes.toggle('highlightListItem', false));
     });
 
     _ivrView.onUpdate = ((String menuName) async {
@@ -160,7 +160,7 @@ class Ivr {
    *
    */
   void _highlightIvrmenuInList(String name) {
-    _userList.children.forEach((LIElement li) =>
+    _userList.children.forEach((Element li) =>
         li.classes.toggle('highlightListItem', li.dataset['name'] == '$name'));
   }
 

@@ -12,6 +12,7 @@ import 'package:management_tool/page/page-organization.dart' as page;
 import 'package:management_tool/page/page-reception.dart' as page;
 import 'package:management_tool/page/page-user.dart' as page;
 import 'package:management_tool/view.dart' as view;
+import 'package:openreception_framework/model.dart' as model;
 import 'package:openreception_framework/service-html.dart' as transport;
 import 'package:openreception_framework/service.dart' as service;
 
@@ -22,6 +23,11 @@ import 'views/contact-view.dart' as conView;
 controller.Popup notify = controller.popup;
 
 Future main() async {
+  final Uri appUri = Uri.parse(window.location.href);
+  final String token = getToken(appUri);
+  model.User user;
+  Iterable<model.UserGroup> userGroups;
+
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen(print);
   Logger _log = Logger.root;
@@ -31,7 +37,24 @@ Future main() async {
       await (new service.RESTConfiguration(config.configUri, client))
           .clientConfig();
 
-  if (handleToken()) {
+  if (token == null) {
+    login();
+  } else {
+    try {
+      user = await getUser(config.clientConfig.authServerUri, token);
+    } catch (error) {
+      _log.info('No user found for token $token - redirecting to login');
+      login();
+    }
+  }
+
+  userGroups =
+      await getUserGroup(user, config.clientConfig.userServerUri, token);
+
+  if (userGroups.any((model.UserGroup g) =>
+      g.name == 'Administrator' || g.name == 'Service agent')) {
+    config.token = token;
+
     /// Initialize the stores.
     final service.RESTUserStore userStore = new service.RESTUserStore(
         config.clientConfig.userServerUri, config.token, client);
@@ -131,5 +154,34 @@ Future main() async {
     } else {
       _log.shout('HTML5 notifications not supported.');
     }
+  } else {
+    _log.info('Access not allowed for user "$user.name" with token $token');
+    document.body.text = 'Forbidden';
   }
+}
+
+/**
+ * Return the value of the URL path parameter 'settoken'
+ */
+String getToken(Uri appUri) => appUri.queryParameters['settoken'];
+
+/**
+ * Return the current user.
+ */
+Future<model.User> getUser(Uri authServerUri, String token) {
+  service.Authentication authService =
+      new service.Authentication(authServerUri, token, new transport.Client());
+
+  return authService.userOf(token);
+}
+
+/**
+ * Return the current user.
+ */
+Future<Iterable<model.UserGroup>> getUserGroup(
+    model.User user, Uri userServerUri, String token) {
+  service.RESTUserStore userService =
+      new service.RESTUserStore(userServerUri, token, new transport.Client());
+
+  return userService.userGroups(user.id);
 }

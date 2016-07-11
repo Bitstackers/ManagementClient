@@ -275,17 +275,16 @@ class ReceptionContact {
 
       if (_deleteButton.text != confirmText) {
         _deleteButton.text = confirmText;
-        return;
-      }
-
-      try {
-        await _contactController.removeFromReception(
-            contact.ID, contact.receptionID);
-        notify.success(
-            'Receptions-kontakt fjernet fra reception', '${_header.text}');
-        element.remove();
-      } catch (error) {
-        notify.error('Receptions-kontakten ikke fjernet', 'Fejl: $error');
+      } else {
+        try {
+          await _contactController.removeFromReception(
+              contact.ID, contact.receptionID);
+          notify.success(
+              'Receptions-kontakt fjernet fra reception', '${_header.text}');
+          element.remove();
+        } catch (error) {
+          notify.error('Receptions-kontakten ikke fjernet', 'Fejl: $error');
+        }
       }
     });
 

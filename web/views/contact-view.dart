@@ -306,11 +306,8 @@ class ContactView {
       final String confirmationText =
           'Bekræft import (slet cid:${_importCidInput.value})';
 
-      if (_importCidInput.value.isEmpty) {
-        return;
-      }
-
-      if (_importButton.text != confirmationText) {
+      if (_importCidInput.value.isNotEmpty &&
+          _importButton.text != confirmationText) {
         _importButton.text = confirmationText;
         _saveButton.disabled = true;
         _deleteButton.disabled = true;
@@ -320,11 +317,11 @@ class ContactView {
 
           if (sourceCid == baseContact.id) {
             notify.error('"${_importCidInput.value}" er egen ID', '');
-            return;
+            return null;
           }
         } on FormatException {
           notify.error('"${_importCidInput.value}" er ikke et tal', '');
-          return;
+          return null;
         }
 
         try {
@@ -393,8 +390,6 @@ class ContactView {
           baseContact = await _contactController.get(dcid);
         } on storage.NotFound {
           notify.error('cid:${sourceCid} Findes ikke', '');
-
-          return;
         }
       }
     });
@@ -456,7 +451,7 @@ class ContactView {
   }
 
   void _highlightContactInList(int id) {
-    _ulContactList.children.forEach((LIElement li) => li.classes
+    _ulContactList.children.forEach((Element li) => li.classes
         .toggle('highlightListItem', li.dataset['contactid'] == '$id'));
   }
 
@@ -562,7 +557,7 @@ class ContactView {
       int compareTo(model.Reception rs1, model.Reception rs2) =>
           rs1.fullName.compareTo(rs2.fullName);
 
-      List list = receptions.toList()..sort(compareTo);
+      List<model.Reception> list = receptions.toList()..sort(compareTo);
 
       _search.updateSourceList(list);
     });

@@ -157,7 +157,8 @@ class Endpoints {
   }
 
   Iterable<model.MessageEndpoint> get endpoints =>
-      JSON.decode(_endpointsInput.value).map(model.MessageEndpoint.decode);
+      JSON.decode(_endpointsInput.value).map(model.MessageEndpoint.decode)
+      as Iterable<model.MessageEndpoint>;
 
   void _resizeInput() {
     while (_endpointsInput.client.height < _endpointsInput.scrollHeight) {
