@@ -51,7 +51,7 @@ class IvrMenu {
       json = JSON.decode(_menuInput.value);
 
       try {
-        menu = model.IvrMenu.decode(json);
+        model.IvrMenu.decode(json);
       } on FormatException {
         _inputErrorList.children
             .add(new LIElement()..text = 'Kaldplan-parser fejl.');
