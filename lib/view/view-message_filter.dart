@@ -11,13 +11,16 @@ class MessageFilter {
   Function onChange;
 
   final SelectElement _userSelector = new SelectElement()
-    ..classes.add('full-width');
+    ..classes.add('full-width')
+    ..style.maxWidth = '98%';
 
   final SelectElement _receptionSelector = new SelectElement()
-    ..classes.add('full-width');
+    ..classes.add('full-width')
+    ..style.maxWidth = '98%';
 
   final SelectElement _contactSelector = new SelectElement()
     ..classes.add('full-width')
+    ..style.maxWidth = '98%'
     ..children = [
       new OptionElement()
         ..text = ''
@@ -88,8 +91,11 @@ class MessageFilter {
    *
    */
   Future _reloadContactSelector() async {
-    Iterable<model.Contact> contacts =
-        _rid != model.Reception.noID ? await _contactController.list(_rid) : [];
+    List<model.Contact> contacts = _rid != model.Reception.noID
+        ? (await _contactController.list(_rid)).toList()
+        : [];
+    contacts.sort(
+        (a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()));
 
     OptionElement contactToOption(model.Contact contact) => new OptionElement()
       ..label = contact.fullName
@@ -106,7 +112,8 @@ class MessageFilter {
    *
    */
   Future _reloadUserSelector() async {
-    Iterable<model.User> users = await _userController.list();
+    List<model.User> users = (await _userController.list()).toList();
+    users.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     OptionElement userToOption(model.User user) => new OptionElement()
       ..label = user.name
@@ -124,7 +131,8 @@ class MessageFilter {
    */
 
   Future _reloadReceptionSelector() async {
-    Iterable<model.Reception> rcps = await _receptionController.list();
+    List<model.Reception> rcps = (await _receptionController.list()).toList();
+    rcps.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     OptionElement receptionToOption(model.Reception r) => new OptionElement()
       ..label = r.name
