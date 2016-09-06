@@ -346,7 +346,7 @@ class ReceptionContact {
     _cidInput.value = contact.ID.toString();
 
     _tagsInput.value = contact.tags.join('\n');
-    _statusEmailInput.checked = contact.wantsMessage;
+    _statusEmailInput.checked = contact.statusEmail;
     _backupContactsInput.value = contact.backupContacts.join('\n');
     _handlingInput.value = contact.handling.join('\n');
     _departmentsInput.value = contact.departments.join('\n');

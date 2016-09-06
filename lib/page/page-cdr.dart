@@ -40,6 +40,29 @@ class Context {
 class Cdr {
   final controller.Cdr _cdrCtrl;
   final controller.Contact _contactCtrl;
+  SelectElement costAlertRatioSelect = new SelectElement()
+    ..disabled = false
+    ..style.height = '28px'
+    ..style.marginLeft = '0.5em'
+    ..title = 'Trafik alarm ratio'
+    ..children = [
+      new OptionElement()
+        ..text = '0.8'
+        ..value = '0.8',
+      new OptionElement()
+        ..text = '0.9'
+        ..value = '0.9',
+      new OptionElement()
+        ..text = '1.0'
+        ..value = '1.0'
+        ..selected = true,
+      new OptionElement()
+        ..text = '1.1'
+        ..value = '1.1',
+      new OptionElement()
+        ..text = '1.2'
+        ..value = '1.2'
+    ];
   SelectElement directionSelect = new SelectElement()
     ..disabled = true
     ..style.height = '28px'
@@ -128,6 +151,7 @@ class Cdr {
         toInput,
         kindSelect,
         directionSelect,
+        costAlertRatioSelect,
         receptionSelect,
         ridInput,
         userSelect,
@@ -547,18 +571,26 @@ class Cdr {
       totalOutboundPbx += c.summary.outboundByPbx;
       totalShortCalls += shortCalls;
 
+      bool costAlert = false;
+      final int inboundCount = answered +
+          c.summary.inboundNotNotified +
+          c.summary.notifiedNotAnswered;
+      if (inboundCount > 0) {
+        final double maxRatio = double.parse(costAlertRatioSelect.value);
+        final double ratio = (c.summary.outboundCost / 100) / inboundCount;
+        if (ratio > maxRatio) {
+          costAlert = true;
+        }
+      }
+
       rows.add(new TableRowElement()
         ..onClick.listen((MouseEvent event) {
           final Element target = event.currentTarget;
-          final String color = target.style.color;
-          if (color == 'red') {
-            target.style.color = 'blue';
-          } else if (color == 'blue') {
-            target.style.color = 'lightgrey';
-          } else if (color == 'lightgrey') {
-            target.style.color = '';
+          final String bc = target.style.backgroundColor;
+          if (bc == '') {
+            target.style.backgroundColor = 'orange';
           } else {
-            target.style.color = 'red';
+            target.style.backgroundColor = '';
           }
         })
         ..children = [
@@ -568,13 +600,12 @@ class Cdr {
             ..title = c.summary.rid.toString(),
           new TableCellElement()
             ..style.textAlign = 'center'
-            ..text = (answered +
-                    c.summary.inboundNotNotified +
-                    c.summary.notifiedNotAnswered)
-                .toString()
+            ..text = inboundCount.toString()
             ..title = 'Ind total',
           new TableCellElement()
             ..style.textAlign = 'right'
+            ..style.color = costAlert ? 'red' : ''
+            ..style.fontWeight = costAlert ? 'bold' : ''
             ..text = (c.summary.outboundCost / 100).toString()
             ..title = 'Trafik',
           new TableCellElement()
@@ -597,13 +628,13 @@ class Cdr {
           new TableCellElement()
             ..style.textAlign = 'center'
             ..text = c.summary.inboundNotNotified > 0
-                ? c.summary.inboundNotNotified
+                ? c.summary.inboundNotNotified.toString()
                 : ''
             ..title = 'Voicesvar',
           new TableCellElement()
             ..style.textAlign = 'center'
             ..text = c.summary.notifiedNotAnswered > 0
-                ? c.summary.notifiedNotAnswered
+                ? c.summary.notifiedNotAnswered.toString()
                 : ''
             ..title = 'Mistede',
           new TableCellElement()
@@ -700,6 +731,7 @@ class Cdr {
     kindSelect.onChange.listen((Event event) {
       final SelectElement se = (event.target as SelectElement);
       if (se.value == 'summary') {
+        costAlertRatioSelect.disabled = false;
         directionSelect.options.first.selected = true;
         directionSelect.disabled = true;
         userSelect.options.first.selected = true;
@@ -707,6 +739,7 @@ class Cdr {
         uidInput.disabled = true;
         uidInput.value = '';
       } else if (se.value == 'list') {
+        costAlertRatioSelect.disabled = true;
         directionSelect.disabled = false;
         userSelect.disabled = false;
         uidInput.disabled = false;
