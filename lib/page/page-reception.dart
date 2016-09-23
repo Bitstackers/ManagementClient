@@ -78,7 +78,7 @@ class ReceptionView {
   void _observers() {
     _createButton.onClick.listen((_) {
       //_clearRightBar();
-      _receptionView.reception = new ORModel.Reception.empty();
+      _receptionView.reception = new ORModel.Reception.empty()..enabled = true;
     });
 
     bus.on(WindowChanged).listen((WindowChanged event) async {
