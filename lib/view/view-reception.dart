@@ -23,7 +23,8 @@ class Reception {
   final controller.Organization _orgController;
   final controller.Calendar _calendarController;
 
-  bool get inputHasErrors => _phoneNumberView._validationError;
+  bool get inputHasErrors =>
+      _phoneNumberView._validationError && _whenWhatView._validationError;
 
   Stream<ReceptionChange> get changes => _changeBus.stream;
   final Bus<ReceptionChange> _changeBus = new Bus<ReceptionChange>();
@@ -120,6 +121,7 @@ class Reception {
     ..text = '';
 
   Phonenumbers _phoneNumberView;
+  WhenWhats _whenWhatView;
 
   final DivElement _organizationSelector = new DivElement();
 
@@ -155,6 +157,7 @@ class Reception {
     _extraDataInput.value = r.extraData != null ? r.extraData.toString() : '';
 
     _phoneNumberView.phoneNumbers = r.telephoneNumbers;
+    _whenWhatView.whenWhats = r.whenWhats;
 
     _addressesInput.value = r.addresses != null ? r.addresses.join('\n') : '';
 
@@ -256,6 +259,7 @@ class Reception {
     ..salesMarketingHandling =
         _valuesFromListTextArea(_salesMarketingHandlingInput)
     ..telephoneNumbers = _phoneNumberView.phoneNumbers.toList()
+    ..whenWhats = _whenWhatView.whenWhats.toList()
     ..vatNumbers = _valuesFromListTextArea(_vatNumbersInput)
     ..websites = _valuesFromListTextArea(_websitesInput);
 
@@ -265,6 +269,7 @@ class Reception {
   Reception(this._recController, this._orgController, this._dpController,
       this._calendarController) {
     _phoneNumberView = new Phonenumbers();
+    _whenWhatView = new WhenWhats();
     _calendarView = new Calendar(_calendarController, false);
     _deletedCalendarView = new Calendar(_calendarController, true);
 
@@ -397,6 +402,7 @@ class Reception {
                 ..htmlFor = _shortGreetingInput.id,
               _shortGreetingInput
             ],
+          _whenWhatView.element,
           new DivElement()
             ..children = [
               new LabelElement()
@@ -523,6 +529,12 @@ class Reception {
         }
 
         _phoneNumberView.onChange = () {
+          _saveButton.disabled = inputHasErrors;
+          _deleteButton.disabled = inputHasErrors || !_saveButton.disabled;
+          _deployDialplanButton.disabled = _deleteButton.disabled;
+        };
+
+        _whenWhatView.onChange = () {
           _saveButton.disabled = inputHasErrors;
           _deleteButton.disabled = inputHasErrors || !_saveButton.disabled;
           _deployDialplanButton.disabled = _deleteButton.disabled;

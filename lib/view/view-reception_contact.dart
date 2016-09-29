@@ -20,7 +20,8 @@ class ReceptionContact {
   bool get inputHasErrors =>
       _endpointsView.validationError ||
       _distributionsListView.validationError ||
-      _phoneNumberView.validationError;
+      _phoneNumberView.validationError ||
+      _whenWhatView.validationError;
 
   final HeadingElement _header = new HeadingElement.h2()
     ..classes.add('reception-contact-header');
@@ -84,6 +85,7 @@ class ReceptionContact {
   Endpoints _endpointsView;
   DistributionList _distributionsListView;
   Phonenumbers _phoneNumberView;
+  WhenWhats _whenWhatView;
 
   /**
    *
@@ -99,6 +101,7 @@ class ReceptionContact {
     _distributionsListView = new DistributionList();
 
     _phoneNumberView = new Phonenumbers();
+    _whenWhatView = new WhenWhats();
 
     element.children = [
       _header,
@@ -172,6 +175,7 @@ class ReceptionContact {
       new DivElement()
         ..classes.add('col-1-2')
         ..children = [
+          _whenWhatView.element,
           _phoneNumberView.element,
           _distributionsListView.element,
           new DivElement()
@@ -317,6 +321,11 @@ class ReceptionContact {
       _deleteButton.disabled = inputHasErrors || !_saveButton.disabled;
     };
 
+    _whenWhatView.onChange = () {
+      _saveButton.disabled = inputHasErrors;
+      _deleteButton.disabled = inputHasErrors || !_saveButton.disabled;
+    };
+
     element.querySelectorAll('textarea').forEach((Element elem) {
       elem.onInput.listen((_) {
         utilHtml.specialCharReplace(elem);
@@ -339,7 +348,8 @@ class ReceptionContact {
     ..tags = _valuesFromListTextArea(_tagsInput).toSet().toList(growable: false)
     ..titles = _valuesFromListTextArea(_titlesInput)
     ..workhours = _valuesFromListTextArea(_workHoursInput)
-    ..phones = _phoneNumberView.phoneNumbers.toList();
+    ..phones = _phoneNumberView.phoneNumbers.toList()
+    ..whenWhats = _whenWhatView.whenWhats.toList();
 
   void set contact(model.Contact contact) {
     _ridInput.value = contact.receptionID.toString();
@@ -358,6 +368,8 @@ class ReceptionContact {
     _messagePrerequisiteInput.value = contact.messagePrerequisites.join('\n');
 
     _phoneNumberView.phoneNumbers = contact.phones;
+    _whenWhatView.whenWhats = contact.whenWhats;
+
     _workHoursInput.value = contact.workhours.join('\n');
 
     _endpointController.list(contact.receptionID, contact.ID).then((eps) {

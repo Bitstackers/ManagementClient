@@ -30,6 +30,7 @@ part 'view/view-reception_contact.dart';
 part 'view/view-user.dart';
 part 'view/view-user_groups.dart';
 part 'view/view-user_identities.dart';
+part 'view/view-when_whats.dart';
 
 const String _libraryName = 'management_tool.view';
 const List<String> phonenumberTypes = const ['PSTN', 'SIP'];
