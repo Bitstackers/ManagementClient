@@ -105,7 +105,8 @@ class Calendar {
       }
 
       changeUl.children
-        ..addAll(changeList.map((change) => _changeToLI(change, 'Ændret')));
+        ..addAll(changeList.map((model.CalendarEntryChange change) =>
+            _changeToLI(change, 'Ændret')));
       changeUl.children.add(creation);
 
       changeCell.children = [changeUl];
