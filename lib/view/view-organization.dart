@@ -71,7 +71,7 @@ class Organization {
     ..id = _id
     ..billingType = _billingTypeInput.value
     ..flag = _flagInput.value
-    ..fullName = _nameInput.value;
+    ..fullName = _nameInput.value.trim();
 
   /**
    *

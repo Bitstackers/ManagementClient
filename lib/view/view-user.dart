@@ -191,11 +191,11 @@ class User {
    */
   model.User get user => new model.User.empty()
     ..id = userId
-    ..name = _userNameInput.value
-    ..address = _userSendFromInput.value
-    ..googleAppcode = _googleAppCodeInput.value
-    ..googleUsername = _googleUsernameInput.value
-    ..peer = _userExtensionInput.value;
+    ..name = _userNameInput.value.trim()
+    ..address = _userSendFromInput.value.trim()
+    ..googleAppcode = _googleAppCodeInput.value.trim()
+    ..googleUsername = _googleUsernameInput.value.trim()
+    ..peer = _userExtensionInput.value.trim();
 
   /**
    *

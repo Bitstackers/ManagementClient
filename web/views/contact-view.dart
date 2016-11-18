@@ -232,7 +232,7 @@ class ContactView {
     ..id = int.parse(_bcidInput.value)
     ..enabled = _enabledInput.checked
     ..contactType = _typeInput.value
-    ..fullName = _nameInput.value;
+    ..fullName = _nameInput.value.trim();
 
   /**
    *
@@ -631,7 +631,9 @@ class ContactView {
       ..classes.add('clickable')
       ..text = '${organization.fullName}'
       ..onClick.listen((_) {
-        Map data = {'organization_id': organization.id,};
+        Map data = {
+          'organization_id': organization.id,
+        };
         bus.fire(new WindowChanged('organization', data));
       });
     return li;

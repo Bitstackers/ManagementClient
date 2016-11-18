@@ -2,6 +2,8 @@ part of management_tool.view;
 
 class Phonenumbers {
   final Logger _log = new Logger('$_libraryName.Phonenumbers');
+  final RegExp _numeric = new RegExp(r'^-?[0-9]+$');
+  final bool _validate;
 
   Function onChange;
 
@@ -37,7 +39,7 @@ class Phonenumbers {
     ..text = 'Fold ud'
     ..classes.add('create');
 
-  Phonenumbers() {
+  Phonenumbers(bool this._validate) {
     _buttons.children = [_addNew, _foldJson, _unfoldJson];
     _header.children = [_label, _buttons];
     element.children = [_header, _phonenumberInput];
@@ -47,11 +49,11 @@ class Phonenumbers {
   void _observers() {
     _addNew.onClick.listen((_) {
       final model.PhoneNumber pn = new model.PhoneNumber.empty()
-        ..billing_type = 'dansk mobil'
+        ..billing_type = ''
         ..confidential = true
         ..description = 'Kort beskrivelse'
         ..endpoint = '00000000'
-        ..tags = ['Kontor']
+        ..tags = []
         ..type = 'mobil';
 
       if (_unfoldJson.hidden) {
@@ -71,13 +73,19 @@ class Phonenumbers {
     _phonenumberInput.onInput.listen((_) {
       _validationError = false;
       _phonenumberInput.classes.toggle('error', false);
-      try {
-        phoneNumbers;
 
-        ///TODO: Validate endpoints
-      } on FormatException {
-        _validationError = true;
-        _phonenumberInput.classes.toggle('error', true);
+      if (_validate) {
+        try {
+          final Iterable<model.PhoneNumber> pns = phoneNumbers;
+
+          if (!pns.every((model.PhoneNumber pn) =>
+              _numeric.hasMatch(pn.endpoint) && pn.endpoint.length >= 8)) {
+            throw new FormatException('bad phonenumber');
+          }
+        } on FormatException {
+          _validationError = true;
+          _phonenumberInput.classes.toggle('error', true);
+        }
       }
 
       if (onChange != null) {

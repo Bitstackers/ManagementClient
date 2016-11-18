@@ -100,7 +100,7 @@ class ReceptionContact {
 
     _distributionsListView = new DistributionList();
 
-    _phoneNumberView = new Phonenumbers();
+    _phoneNumberView = new Phonenumbers(true);
     _whenWhatView = new WhenWhats();
 
     element.children = [

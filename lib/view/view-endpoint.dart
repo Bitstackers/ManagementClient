@@ -17,7 +17,10 @@ class EndpointChange {
  * Visual representation of an endpoint collection belonging to a contact.
  */
 class Endpoints {
+  final RegExp _emailRegex = new RegExp(
+      r"^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$");
   Logger _log = new Logger('$_libraryName.Endpoints');
+  final RegExp _numeric = new RegExp(r'^-?[0-9]+$');
 
   Function onChange;
 
@@ -69,7 +72,7 @@ class Endpoints {
   void _observers() {
     _addNew.onClick.listen((_) {
       final model.MessageEndpoint template = new model.MessageEndpoint.empty()
-        ..address = 'eksempel@domæne.dk'
+        ..address = 'service@responsum.dk'
         ..confidential = false
         ..description = 'Kort beskrivelse'
         ..enabled = true
@@ -93,10 +96,33 @@ class Endpoints {
       _validationError = false;
       _endpointsInput.classes.toggle('error', false);
       try {
-        endpoints;
+        final Iterable<model.MessageEndpoint> eps = endpoints;
 
-        ///TODO: Validate endpoints
+        if (eps.any((model.MessageEndpoint ep) =>
+            ep.type != 'sms' && ep.type != 'email')) {
+          throw new FormatException('bad type');
+        }
 
+        if (eps.any((model.MessageEndpoint ep) =>
+            ep.role != 'to' && ep.role != 'cc' && ep.role != 'bcc')) {
+          throw new FormatException('bad role');
+        }
+
+        if (!eps.where((model.MessageEndpoint ep) => ep.type == 'email').every(
+            (model.MessageEndpoint ep) =>
+                _emailRegex.hasMatch(ep.address.toLowerCase()) &&
+                ep.address == ep.address.toLowerCase() &&
+                !ep.address.contains(new RegExp(r'[æ,ø,å]')))) {
+          throw new FormatException('bad emailaddress');
+        }
+
+        if (!eps.where((model.MessageEndpoint ep) => ep.type == 'sms').every(
+            (model.MessageEndpoint ep) =>
+                ep.address.length == 8 &&
+                _numeric.hasMatch(ep.address) &&
+                ep.role == 'to')) {
+          throw new FormatException('bad sms');
+        }
       } on FormatException {
         _validationError = true;
         _endpointsInput.classes.toggle('error', true);

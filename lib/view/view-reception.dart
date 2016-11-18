@@ -239,7 +239,7 @@ class Reception {
    */
   model.Reception get reception => new model.Reception.empty()
     ..ID = int.parse(_idInput.value)
-    ..fullName = _nameInput.value
+    ..fullName = _nameInput.value.trim()
     ..addresses = _valuesFromListTextArea(_addressesInput)
     ..alternateNames = _valuesFromListTextArea(_alternateNamesInput)
     ..bankingInformation = _valuesFromListTextArea(_bankingInformationInput)
@@ -254,8 +254,8 @@ class Reception {
     ..miniWiki = _miniWikiInput.value
     ..openingHours = _valuesFromListTextArea(_openingHoursInput)
     ..organizationId = _organizationId
-    ..otherData = _otherDataInput.value
-    ..product = _productInput.value
+    ..otherData = _otherDataInput.value.trim()
+    ..product = _productInput.value.trim()
     ..salesMarketingHandling =
         _valuesFromListTextArea(_salesMarketingHandlingInput)
     ..telephoneNumbers = _phoneNumberView.phoneNumbers.toList()
@@ -268,7 +268,7 @@ class Reception {
    */
   Reception(this._recController, this._orgController, this._dpController,
       this._calendarController) {
-    _phoneNumberView = new Phonenumbers();
+    _phoneNumberView = new Phonenumbers(false);
     _whenWhatView = new WhenWhats();
     _calendarView = new Calendar(_calendarController, false);
     _deletedCalendarView = new Calendar(_calendarController, true);
