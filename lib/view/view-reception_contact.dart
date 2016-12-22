@@ -151,7 +151,7 @@ class ReceptionContact {
           new DivElement()
             ..children = [
               new LabelElement()
-                ..text = 'Ansvarsomåder'
+                ..text = 'Ansvarsområder'
                 ..htmlFor = _responsibilitiesInput.id,
               _responsibilitiesInput
             ],
