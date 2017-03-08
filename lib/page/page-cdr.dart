@@ -318,11 +318,13 @@ class Cdr {
                 .first
             ..style.textAlign = 'center',
           new TableCellElement()
-            ..text = (new Duration(seconds: agentSummary.inboundBillSeconds) ~/
-                    agentSummary.answered)
-                .toString()
-                .split('.')
-                .first
+            ..text = agentSummary.answered > 0
+                ? (new Duration(seconds: agentSummary.inboundBillSeconds) ~/
+                        agentSummary.answered)
+                    .toString()
+                    .split('.')
+                    .first
+                : new Duration().toString().split('.').first
             ..style.textAlign = 'center',
           new TableCellElement()
             ..text = agentSummary.outbound.toString()
