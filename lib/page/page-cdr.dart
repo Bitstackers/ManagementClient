@@ -95,7 +95,10 @@ class Cdr {
         ..selected = true,
       new OptionElement()
         ..text = 'liste'
-        ..value = 'list'
+        ..value = 'list',
+      new OptionElement()
+        ..text = 'dagsrapport'
+        ..value = 'dailyreport'
     ];
 
   final DivElement listing = new DivElement()
@@ -210,6 +213,8 @@ class Cdr {
       await _fetchSummaries(from, to, ridToNameMap);
     } else if (kindSelect.value == 'list') {
       await _fetchList(from, to, ridToNameMap, uidToNameMap);
+    } else if (kindSelect.value == 'dailyreport') {
+      await _fetchDaily(from, uidToNameMap);
     }
 
     receptionSelect.options.first.selected = true;
@@ -218,6 +223,139 @@ class Cdr {
     fetchButton.disabled = false;
     fetchButton.style.backgroundColor = '';
     fetchButton.text = 'Hent';
+  }
+
+  Future _fetchDaily(DateTime from, Map<int, String> uidToNameMap) async {
+    int answered = 0;
+    int answered10 = 0;
+    int answered10To20 = 0;
+    int answeredAfter60 = 0;
+    int inboundBillSeconds = 0;
+    int inboundNotNotified = 0;
+    int longCalls = 0;
+    int notifiedNotAnswered = 0;
+    int outboundAgent = 0;
+    double outboundCost = 0.0;
+    int outboundPbx = 0;
+    int shortCalls = 0;
+    final Map<String, dynamic> map = (await _cdrCtrl.daily(from));
+    final List<TableRowElement> rows = new List<TableRowElement>();
+    final TableElement table = new TableElement();
+    final List<model.CdrSummary> summaries = new List<model.CdrSummary>();
+    final List<model.CdrAgentSummary> agentSummaries =
+        new List<model.CdrAgentSummary>();
+
+    for (Map m in (map['summaries'] as List)) {
+      final model.CdrSummary summary = new model.CdrSummary.fromJson(m);
+      summaries.add(summary);
+      agentSummaries.addAll(summary.agentSummaries);
+    }
+
+    Map<String, model.CdrAgentSummary> smap =
+        new Map<String, model.CdrAgentSummary>();
+
+    agentSummaries.forEach((model.CdrAgentSummary agentSummary) {
+      answered += agentSummary.answered;
+      answered10 += agentSummary.answered10;
+      answered10To20 += agentSummary.answered10To20;
+      answeredAfter60 += agentSummary.answeredAfter60;
+      inboundBillSeconds += agentSummary.inboundBillSeconds;
+      longCalls += agentSummary.longCalls;
+      outboundAgent += agentSummary.outbound;
+      shortCalls += agentSummary.shortCalls;
+
+      if (smap.containsKey(uidToNameMap[agentSummary.uid])) {
+        smap[uidToNameMap[agentSummary.uid]].add(agentSummary);
+      } else {
+        smap[uidToNameMap[agentSummary.uid]] = agentSummary;
+      }
+    });
+
+    summaries.forEach((model.CdrSummary summary) {
+      inboundNotNotified += summary.inboundNotNotified;
+      notifiedNotAnswered += summary.notifiedNotAnswered;
+      outboundCost += summary.outboundCost;
+      outboundPbx += summary.outboundByPbx;
+    });
+
+    table.createTHead()
+      ..children = [
+        new TableCellElement()..text = 'Agent',
+        new TableCellElement()..text = 'Besvaret',
+        new TableCellElement()..text = '< 10',
+        new TableCellElement()..text = '> 60',
+        new TableCellElement()..text = 'Samtaletid',
+        new TableCellElement()..text = 'Gns. samtaletid',
+        new TableCellElement()..text = 'Udgående',
+        new TableCellElement()..text = 'Lange kald',
+        new TableCellElement()..text = 'Korte kald'
+      ]
+      ..style.textAlign = 'center';
+
+    final List<String> users = smap.keys.toList();
+    users.sort();
+
+    users.forEach((String user) {
+      final model.CdrAgentSummary agentSummary = smap[user];
+      rows.add(new TableRowElement()
+        ..children = [
+          new TableCellElement()
+            ..text = user
+            ..style.textAlign = 'left',
+          new TableCellElement()
+            ..text = agentSummary.answered.toString()
+            ..style.textAlign = 'center',
+          new TableCellElement()
+            ..text = agentSummary.answered10.toString()
+            ..style.textAlign = 'center',
+          new TableCellElement()
+            ..text = agentSummary.answeredAfter60.toString()
+            ..style.textAlign = 'center',
+          new TableCellElement()
+            ..text = new Duration(seconds: agentSummary.inboundBillSeconds)
+                .toString()
+                .split('.')
+                .first
+            ..style.textAlign = 'center',
+          new TableCellElement()
+            ..text = (new Duration(seconds: agentSummary.inboundBillSeconds) ~/
+                    agentSummary.answered)
+                .toString()
+                .split('.')
+                .first
+            ..style.textAlign = 'center',
+          new TableCellElement()
+            ..text = agentSummary.outbound.toString()
+            ..style.textAlign = 'center',
+          new TableCellElement()
+            ..text = agentSummary.longCalls.toString()
+            ..style.textAlign = 'center',
+          new TableCellElement()
+            ..text = agentSummary.shortCalls.toString()
+            ..style.textAlign = 'center'
+        ]);
+    });
+
+    table.createTBody()..children = rows;
+
+    listing.children = [table];
+
+    setSummaryTotalsNode(
+        answered + inboundNotNotified + notifiedNotAnswered,
+        answered,
+        answeredAfter60,
+        answered10 + answered10To20,
+        inboundNotNotified,
+        notifiedNotAnswered,
+        shortCalls,
+        longCalls,
+        outboundAgent,
+        outboundCost,
+        outboundPbx,
+        inboundBillSeconds,
+        map['callChargeMultiplier'],
+        map['shortCallBoundaryInSeconds'],
+        map['longCallBoundaryInSeconds']);
   }
 
   Future _fetchList(DateTime from, DateTime to,
@@ -442,10 +580,14 @@ class Cdr {
           new TableCellElement()
             ..text = c.entry.uuid
             ..title = c.entry.filename
-            ..style.cursor = c.entry.answerEpoch > 0 &&
-                actorMap[c.entry.state] == 'agent' ? 'pointer' : ''
-            ..style.textDecoration = c.entry.answerEpoch > 0 &&
-                actorMap[c.entry.state] == 'agent' ? 'underline' : ''
+            ..style.cursor =
+                c.entry.answerEpoch > 0 && actorMap[c.entry.state] == 'agent'
+                    ? 'pointer'
+                    : ''
+            ..style.textDecoration =
+                c.entry.answerEpoch > 0 && actorMap[c.entry.state] == 'agent'
+                    ? 'underline'
+                    : ''
             ..onMouseOver.listen((MouseEvent event) {
               if (c.entry.answerEpoch > 0 &&
                   actorMap[c.entry.state] == 'agent') {
@@ -734,15 +876,34 @@ class Cdr {
         costAlertRatioSelect.disabled = false;
         directionSelect.options.first.selected = true;
         directionSelect.disabled = true;
+        receptionSelect.disabled = false;
+        ridInput.disabled = false;
+        toInput.disabled = false;
         userSelect.options.first.selected = true;
         userSelect.disabled = true;
         uidInput.disabled = true;
         uidInput.value = '';
       } else if (se.value == 'list') {
         costAlertRatioSelect.disabled = true;
+        directionSelect.options.first.selected = true;
         directionSelect.disabled = false;
+        receptionSelect.disabled = false;
+        ridInput.disabled = false;
+        toInput.disabled = false;
+        userSelect.options.first.selected = true;
         userSelect.disabled = false;
         uidInput.disabled = false;
+      } else if (se.value == 'dailyreport') {
+        costAlertRatioSelect.disabled = true;
+        directionSelect.options.first.selected = true;
+        directionSelect.disabled = true;
+        receptionSelect.disabled = true;
+        ridInput.disabled = true;
+        toInput.disabled = true;
+        userSelect.options.first.selected = true;
+        userSelect.disabled = true;
+        uidInput.disabled = true;
+        uidInput.value = '';
       }
     });
 
@@ -784,8 +945,9 @@ class Cdr {
         .where((model.CdrEntry entry) =>
             entry.agentBeginEpoch - entry.startEpoch <= 20)
         .length;
-    final Duration totalSpeakTime = new Duration(seconds: answeredEntries.fold(
-        0, (acc, model.CdrEntry entry) => acc + entry.billSec));
+    final Duration totalSpeakTime = new Duration(
+        seconds: answeredEntries.fold(
+            0, (acc, model.CdrEntry entry) => acc + entry.billSec));
     final DivElement sumsIn = new DivElement()
       ..text =
           'Total ind: ${answeredEntries.length + totalPbxAnswered + totalMissed}'
