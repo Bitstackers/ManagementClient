@@ -883,30 +883,7 @@ class Cdr {
         element.style.display = 'flex';
         element.style.flexDirection = 'column';
 
-        if (event.data.isNotEmpty) {
-          kindSelect.options.forEach((OptionElement o) {
-            if (o.value == event.data['cdrKind']) {
-              o.selected = true;
-              kindSelectUpdate(o.value);
-            }
-          });
-
-          if (event.data.containsKey('from') && event.data.containsKey('to')) {
-            final DateTime from = event.data['from'];
-            final DateTime to = event.data['to'];
-            fromInput.value = from.toIso8601String().split('.').first;
-            toInput.value = to.toIso8601String().split('.').first;
-          }
-
-          if (event.data.containsKey('uid')) {
-            uidInput.value = event.data['uid'];
-            ridInput.value = '';
-            directionSelect.options.first.selected = true;
-            fetchButton.click();
-          }
-        }
-
-        _rcpCtrl.list().then((Iterable<model.Reception> receptions) {
+        rcpList(Iterable<model.Reception> receptions) {
           final List<model.Reception> list = receptions.toList();
           list.sort((model.Reception a, b) =>
               a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()));
@@ -921,9 +898,9 @@ class Cdr {
               ..value = reception.ID.toString());
           }
           receptionSelect.children.addAll(options);
-        });
+        }
 
-        _userCtrl.list().then((Iterable<model.User> users) {
+        userList(Iterable<model.User> users) {
           final List<model.User> list = users
               .where(
                   (model.User user) => user.address.isNotEmpty && user.id > 0)
@@ -944,6 +921,35 @@ class Cdr {
               ..value = user.id.toString());
           }
           userSelect.children.addAll(options);
+        }
+
+        Future.wait([_rcpCtrl.list(), _userCtrl.list()]).then((results) {
+          rcpList(results.first);
+          userList(results.last);
+
+          if (event.data.isNotEmpty) {
+            kindSelect.options.forEach((OptionElement o) {
+              if (o.value == event.data['cdrKind']) {
+                o.selected = true;
+                kindSelectUpdate(o.value);
+              }
+            });
+
+            if (event.data.containsKey('from') &&
+                event.data.containsKey('to')) {
+              final DateTime from = event.data['from'];
+              final DateTime to = event.data['to'];
+              fromInput.value = from.toIso8601String().split('.').first;
+              toInput.value = to.toIso8601String().split('.').first;
+            }
+
+            if (event.data.containsKey('uid')) {
+              uidInput.value = event.data['uid'];
+              ridInput.value = '';
+              directionSelect.options.first.selected = true;
+              fetchButton.click();
+            }
+          }
         });
       } else {
         element.hidden = true;
