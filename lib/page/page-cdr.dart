@@ -819,12 +819,71 @@ class Cdr {
         map['longCallBoundaryInSeconds']);
   }
 
+  void kindSelectUpdate(String kind) {
+    if (kind == 'summary') {
+      costAlertRatioSelect.disabled = false;
+      directionSelect.options.first.selected = true;
+      directionSelect.disabled = true;
+      receptionSelect.disabled = false;
+      ridInput.disabled = false;
+      toInput.disabled = false;
+      userSelect.options.first.selected = true;
+      userSelect.disabled = true;
+      uidInput.disabled = true;
+      uidInput.value = '';
+    } else if (kind == 'list') {
+      costAlertRatioSelect.disabled = true;
+      directionSelect.options.first.selected = true;
+      directionSelect.disabled = false;
+      receptionSelect.disabled = false;
+      ridInput.disabled = false;
+      toInput.disabled = false;
+      userSelect.options.first.selected = true;
+      userSelect.disabled = false;
+      uidInput.disabled = false;
+    } else if (kind == 'dailyreport') {
+      costAlertRatioSelect.disabled = true;
+      directionSelect.options.first.selected = true;
+      directionSelect.disabled = true;
+      receptionSelect.disabled = true;
+      ridInput.disabled = true;
+      toInput.disabled = true;
+      userSelect.options.first.selected = true;
+      userSelect.disabled = true;
+      uidInput.disabled = true;
+      uidInput.value = '';
+    }
+  }
+
   void _observers() {
     bus.on(WindowChanged).listen((WindowChanged event) async {
       if (event.window == _viewName) {
         element.hidden = false;
         element.style.display = 'flex';
         element.style.flexDirection = 'column';
+
+        if (event.data.isNotEmpty) {
+          kindSelect.options.forEach((OptionElement o) {
+            if (o.value == event.data['cdrKind']) {
+              o.selected = true;
+              kindSelectUpdate(o.value);
+            }
+          });
+
+          if (event.data.containsKey('from') && event.data.containsKey('to')) {
+            final DateTime from = event.data['from'];
+            final DateTime to = event.data['to'];
+            fromInput.value = from.toIso8601String().split('.').first;
+            toInput.value = to.toIso8601String().split('.').first;
+          }
+
+          if (event.data.containsKey('uid')) {
+            uidInput.value = event.data['uid'];
+            ridInput.value = '';
+            directionSelect.options.first.selected = true;
+            fetchButton.click();
+          }
+        }
 
         _rcpCtrl.list().then((Iterable<model.Reception> receptions) {
           final List<model.Reception> list = receptions.toList();
@@ -874,39 +933,7 @@ class Cdr {
 
     kindSelect.onChange.listen((Event event) {
       final SelectElement se = (event.target as SelectElement);
-      if (se.value == 'summary') {
-        costAlertRatioSelect.disabled = false;
-        directionSelect.options.first.selected = true;
-        directionSelect.disabled = true;
-        receptionSelect.disabled = false;
-        ridInput.disabled = false;
-        toInput.disabled = false;
-        userSelect.options.first.selected = true;
-        userSelect.disabled = true;
-        uidInput.disabled = true;
-        uidInput.value = '';
-      } else if (se.value == 'list') {
-        costAlertRatioSelect.disabled = true;
-        directionSelect.options.first.selected = true;
-        directionSelect.disabled = false;
-        receptionSelect.disabled = false;
-        ridInput.disabled = false;
-        toInput.disabled = false;
-        userSelect.options.first.selected = true;
-        userSelect.disabled = false;
-        uidInput.disabled = false;
-      } else if (se.value == 'dailyreport') {
-        costAlertRatioSelect.disabled = true;
-        directionSelect.options.first.selected = true;
-        directionSelect.disabled = true;
-        receptionSelect.disabled = true;
-        ridInput.disabled = true;
-        toInput.disabled = true;
-        userSelect.options.first.selected = true;
-        userSelect.disabled = true;
-        uidInput.disabled = true;
-        uidInput.value = '';
-      }
+      kindSelectUpdate(se.value);
     });
 
     receptionSelect.onChange.listen((Event event) {

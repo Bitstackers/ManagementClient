@@ -37,6 +37,7 @@ class ContactAddedEvent implements BaseEvent {
 
   ContactAddedEvent([int this.contactId]);
 }
+
 /**
  * Contains the id of the contact removed.
  */

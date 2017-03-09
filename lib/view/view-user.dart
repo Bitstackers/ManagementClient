@@ -48,6 +48,14 @@ class User {
   final InputElement _userExtensionInput = new InputElement()
     ..id = 'user-extension';
 
+  final ButtonElement _callsTodayButton = new ButtonElement()
+    ..text = 'Kald i dag'
+    ..classes.add('create');
+
+  final ButtonElement _callsYesterdayButton = new ButtonElement()
+    ..text = 'Kald i går'
+    ..classes.add('create');
+
   final ButtonElement _saveButton = new ButtonElement()
     ..text = 'Gem'
     ..classes.add('save')
@@ -116,7 +124,9 @@ class User {
       new LabelElement()..text = 'Grupper',
       _groupsView.element,
       new LabelElement()..text = 'Identitieter',
-      _identitiesView.element
+      _identitiesView.element,
+      _callsTodayButton,
+      _callsYesterdayButton
     ];
     _observers();
   }
@@ -150,6 +160,34 @@ class User {
 
     _deleteButton.onClick.listen((_) {
       _deleteUser();
+    });
+
+    _callsTodayButton.onClick.listen((_) {
+      final DateTime now = new DateTime.now();
+      Map data = {
+        'cdrKind': 'list',
+        'uid': userId,
+        'from': new DateTime(now.year, now.month, now.day),
+        'to': new DateTime(now.year, now.month, now.day, 23, 59, 59)
+      };
+      bus.fire(new WindowChanged('cdr', data));
+    });
+
+    _callsYesterdayButton.onClick.listen((_) {
+      DateTime stamp = new DateTime.now().subtract(new Duration(hours: 24));
+
+      while (stamp.weekday == DateTime.SATURDAY ||
+          stamp.weekday == DateTime.SUNDAY) {
+        stamp = stamp.subtract(new Duration(hours: 24));
+      }
+
+      Map data = {
+        'cdrKind': 'list',
+        'uid': userId,
+        'from': new DateTime(stamp.year, stamp.month, stamp.day),
+        'to': new DateTime(stamp.year, stamp.month, stamp.day, 23, 59, 59)
+      };
+      bus.fire(new WindowChanged('cdr', data));
     });
   }
 

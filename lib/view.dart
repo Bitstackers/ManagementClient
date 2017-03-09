@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'package:logging/logging.dart';
 import 'package:management_tool/configuration.dart';
 import 'package:management_tool/controller.dart' as controller;
+import 'package:management_tool/eventbus.dart';
 import 'package:management_tool/searchcomponent.dart';
 import 'package:openreception_framework/bus.dart';
 import 'package:openreception_framework/model.dart' as model;
