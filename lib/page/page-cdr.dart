@@ -292,7 +292,8 @@ class Cdr {
       ]
       ..style.textAlign = 'center';
 
-    final List<String> users = smap.keys.toList();
+    final List<String> users =
+        smap.keys.toList().where((u) => u != null).toList();
     users.sort();
 
     users.forEach((String user) {
@@ -368,10 +369,16 @@ class Cdr {
         from, to, directionSelect.value, ridInput.value, uidInput.value));
     final List<TableRowElement> rows = new List<TableRowElement>();
     final TableElement table = new TableElement();
+    int totalLongCalls = 0;
     int totalMissed = 0;
     int totalOutAgent = 0;
     int totalOutPbx = 0;
     int totalPbxAnswered = 0;
+    int totalShortCalls = 0;
+
+    final double callChargeMultiplier = map['callChargeMultiplier'];
+    final int longCallBoundary = map['longCallBoundaryInSeconds'];
+    final int shortCallBoundary = map['shortCallBoundaryInSeconds'];
 
     table.createTHead()
       ..children = [
@@ -498,6 +505,11 @@ class Cdr {
 
       if (c.entry.state == model.CdrEntryState.notifiedAnsweredByAgent) {
         answeredEntries.add(c.entry);
+        if (lengthOfCall.inSeconds <= shortCallBoundary) {
+          totalShortCalls += 1;
+        } else if (lengthOfCall.inSeconds >= longCallBoundary) {
+          totalLongCalls += 1;
+        }
       }
 
       if (c.entry.state == model.CdrEntryState.inboundNotNotified) {
@@ -615,8 +627,17 @@ class Cdr {
 
     table.createTBody()..children = rows;
 
-    setListTotalsNode(answeredEntries, totalMissed, totalPbxAnswered,
-        totalOutAgent, totalOutPbx);
+    setListTotalsNode(
+        answeredEntries,
+        totalMissed,
+        totalPbxAnswered,
+        totalOutAgent,
+        totalOutPbx,
+        callChargeMultiplier,
+        shortCallBoundary,
+        longCallBoundary,
+        totalLongCalls,
+        totalShortCalls);
   }
 
   Future _fetchSummaries(
@@ -960,8 +981,17 @@ class Cdr {
   /**
    * Populate the list totals node.
    */
-  void setListTotalsNode(List<model.CdrEntry> answeredEntries, int totalMissed,
-      int totalPbxAnswered, int totalOutAgent, int totalOutPbx) {
+  void setListTotalsNode(
+      List<model.CdrEntry> answeredEntries,
+      int totalMissed,
+      int totalPbxAnswered,
+      int totalOutAgent,
+      int totalOutPbx,
+      double callChargeMultiplier,
+      int shortCallBoundaryInSeconds,
+      int longCallBoundaryInSeconds,
+      int longCalls,
+      int shortCalls) {
     final int above60 = answeredEntries
         .where((model.CdrEntry entry) =>
             entry.agentBeginEpoch - entry.startEpoch > 60)
@@ -1000,8 +1030,13 @@ class Cdr {
         ..text =
             'Total agent samtaletid: ${totalSpeakTime.toString().split('.').first}'
             ' / Gns. agent samtaletid: ${(totalSpeakTime ~/ answeredEntries.length).toString().split('.').first}';
-
-      totals..children.addAll([stats, averages]);
+      final DivElement boundaries = new DivElement()
+        ..text = 'Korte kald: $shortCalls'
+            ' / Lange kald: $longCalls'
+            ' / shortCallBoundary: $shortCallBoundaryInSeconds'
+            ' / longCallBoundary: $longCallBoundaryInSeconds'
+            ' / callChargeMultiplier: $callChargeMultiplier';
+      totals..children.addAll([stats, averages, boundaries]);
     }
   }
 
