@@ -280,15 +280,16 @@ class Cdr {
 
     table.createTHead()
       ..children = [
-        new TableCellElement()..text = 'Agent',
-        new TableCellElement()..text = 'Besvaret',
+        new TableCellElement()..text = 'agent',
+        new TableCellElement()..text = 'reelle',
+        new TableCellElement()..text = 'tildelt',
         new TableCellElement()..text = '< 10',
         new TableCellElement()..text = '> 60',
-        new TableCellElement()..text = 'Samtaletid',
-        new TableCellElement()..text = 'Gns. samtaletid',
-        new TableCellElement()..text = 'Udgående',
-        new TableCellElement()..text = 'Lange kald',
-        new TableCellElement()..text = 'Korte kald'
+        new TableCellElement()..text = 'samtaletid',
+        new TableCellElement()..text = 'gns. samtaletid',
+        new TableCellElement()..text = 'udgående',
+        new TableCellElement()..text = 'lange kald',
+        new TableCellElement()..text = 'tomme kald'
       ]
       ..style.textAlign = 'center';
 
@@ -303,6 +304,11 @@ class Cdr {
           new TableCellElement()
             ..text = user
             ..style.textAlign = 'left',
+          new TableCellElement()
+            ..text =
+                (agentSummary.answered - agentSummary.shortCalls).toString()
+            ..style.textAlign = 'center'
+            ..style.fontWeight = 'bold',
           new TableCellElement()
             ..text = agentSummary.answered.toString()
             ..style.textAlign = 'center',
@@ -358,7 +364,8 @@ class Cdr {
         inboundBillSeconds,
         map['callChargeMultiplier'],
         map['shortCallBoundaryInSeconds'],
-        map['longCallBoundaryInSeconds']);
+        map['longCallBoundaryInSeconds'],
+        false);
   }
 
   Future _fetchList(DateTime from, DateTime to,
@@ -502,6 +509,12 @@ class Cdr {
 
     for (Context c in contexts) {
       final Duration lengthOfCall = callLength(c.entry);
+      final String lengthOfCallColor =
+          directionMap[c.entry.state] == 'ind' && answerTime(c.entry).isNotEmpty
+              ? lengthOfCall.inSeconds <= shortCallBoundary
+                  ? 'red'
+                  : lengthOfCall.inSeconds >= longCallBoundary ? 'blue' : ''
+              : '';
 
       if (c.entry.state == model.CdrEntryState.notifiedAnsweredByAgent) {
         answeredEntries.add(c.entry);
@@ -557,7 +570,8 @@ class Cdr {
           new TableCellElement()
             ..style.textAlign = 'center'
             ..text = lengthOfCall.toString().split('.').first
-            ..title = 'længde',
+            ..title = 'længde'
+            ..style.color = lengthOfCallColor,
           new TableCellElement()..text = c.recName,
           new TableCellElement()
             ..text = c.entry.sipFromUserStripped
@@ -659,7 +673,7 @@ class Cdr {
         new TableCellElement()..text = 'voicesvar',
         new TableCellElement()..text = 'mistede',
         new TableCellElement()..text = 'gns. samtaletid',
-        new TableCellElement()..text = 'korte kald',
+        new TableCellElement()..text = 'tomme kald',
         new TableCellElement()..text = 'lange kald'
       ]
       ..style.textAlign = 'center';
@@ -812,7 +826,7 @@ class Cdr {
           new TableCellElement()
             ..style.textAlign = 'center'
             ..text = '$shortCalls'
-            ..title = 'Korte kald',
+            ..title = 'Tomme kald',
           new TableCellElement()
             ..style.textAlign = 'center'
             ..text = '$longCalls'
@@ -837,7 +851,8 @@ class Cdr {
         totalInboundBillSec,
         map['callChargeMultiplier'],
         map['shortCallBoundaryInSeconds'],
-        map['longCallBoundaryInSeconds']);
+        map['longCallBoundaryInSeconds'],
+        true);
   }
 
   void kindSelectUpdate(String kind) {
@@ -982,6 +997,35 @@ class Cdr {
         uidInput.value = uidInput.value + se.value;
       }
     });
+
+    void checkFromAndTo() {
+      try {
+        final DateTime from = DateTime.parse(fromInput.value);
+        final DateTime to = DateTime.parse(toInput.value);
+
+        if (from.isBefore(to)) {
+          kindSelect.disabled = false;
+          fetchButton.disabled = false;
+          fetchButton.style.backgroundColor = '';
+          fetchButton.text = 'Hent';
+        } else {
+          throw 'from is after to';
+        }
+      } catch (_) {
+        kindSelect.disabled = true;
+        fetchButton.disabled = true;
+        fetchButton.style.backgroundColor = 'grey';
+        fetchButton.text = '....';
+      }
+    }
+
+    fromInput.onInput.listen((_) {
+      checkFromAndTo();
+    });
+
+    toInput.onInput.listen((_) {
+      checkFromAndTo();
+    });
   }
 
   /**
@@ -1037,11 +1081,11 @@ class Cdr {
             'Total agent samtaletid: ${totalSpeakTime.toString().split('.').first}'
             ' / Gns. agent samtaletid: ${(totalSpeakTime ~/ answeredEntries.length).toString().split('.').first}';
       final DivElement boundaries = new DivElement()
-        ..text = 'Korte kald: $shortCalls'
-            ' / Lange kald: $longCalls'
-            ' / shortCallBoundary: $shortCallBoundaryInSeconds'
-            ' / longCallBoundary: $longCallBoundaryInSeconds'
-            ' / callChargeMultiplier: $callChargeMultiplier';
+        ..text = 'Tomme kald: $shortCalls'
+            ' / Lange kald: $longCalls';
+      // ' / shortCallBoundary: $shortCallBoundaryInSeconds'
+      // ' / longCallBoundary: $longCallBoundaryInSeconds'
+      // ' / takstjustering: $callChargeMultiplier';
       totals..children.addAll([stats, averages, boundaries]);
     }
   }
@@ -1064,7 +1108,8 @@ class Cdr {
       int totalInboundBillSec,
       double callChargeMultiplier,
       int shortCallBoundaryInSeconds,
-      int longCallBoundaryInSeconds) {
+      int longCallBoundaryInSeconds,
+      bool printMeta) {
     final DivElement inboundData = new DivElement()
       ..text = 'Total ind: $totalInbound'
           ' / Svarede: $totalAnswered'
@@ -1073,12 +1118,15 @@ class Cdr {
           ' / Gns. samtaletid: ${averageDuration(totalInboundBillSec, totalAnswered).toString().split('.').first}'
           ' / Voicesvar: $totalInboundNotNotified'
           ' / Mistede: $totalNotifiedNotAnswered';
-    final DivElement metadata = new DivElement()
-      ..text = 'Korte kald: $totalShortCalls'
-          ' / Lange kald: $totalLongCalls'
-          ' / shortCallBoundary: $shortCallBoundaryInSeconds'
-          ' / longCallBoundary: $longCallBoundaryInSeconds'
-          ' / callChargeMultiplier: $callChargeMultiplier';
+    String meta = 'Tomme kald: $totalShortCalls'
+        ' / Lange kald: $totalLongCalls';
+    if (printMeta) {
+      // meta += ' / shortCallBoundary: $shortCallBoundaryInSeconds'
+      //     ' / longCallBoundary: $longCallBoundaryInSeconds'
+      //     ' / takstjustering: $callChargeMultiplier';
+      meta += ' / takstjustering: $callChargeMultiplier';
+    }
+    final DivElement metadata = new DivElement()..text = meta;
     final DivElement outboundData = new DivElement()
       ..text = 'Udgående agent: $totalOutboundAgent'
           ' / Udgående PBX: $totalOutboundPbx'
